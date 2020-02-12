@@ -10,9 +10,18 @@ df1=gp.read_file("C:/Users/Animesh/Documents/vta research project/DATASETS/t-dri
 df2=gp.read_file("C:/Users/Animesh/Documents/vta research project/DATASETS/t-drive Beijing/Beijing/Beijing_Nodes.shp")
 df3=gp.read_file("C:/Users/Animesh/Documents/vta research project/DATASETS/t-drive Beijing/Beijing/2008.shp")
 #print(df2.head)
-#df3.plot()
+df2.iloc[1]['geometry'].coords[0][0]
+df1.iloc[0].plot()
 df1=df1.to_crs({'init': 'epsg:4326'})
 df2=df2.to_crs({'init': 'epsg:4326'})
+
+import folium
+locations = [[df2.iloc[i]['geometry'].coords[0][1],df2.iloc[i]['geometry'].coords[0][0]] for i in range(len(df2))]
+my_map = folium.Map(location = [39.907388,116.397013], zoom_start = 11.5)
+for point in range(0, len(locations)):
+    folium.Marker(locations[point], popup=df2['type'][point]).add_to(my_map)
+
+my_map.save("C:/Users/Animesh/Documents/vta research project/my_map_nodes.html")
 
 from datetime import datetime
 def timeint(start, end):
@@ -161,7 +170,7 @@ df1.plot(ax=ax, color='grey', linewidth=0.5)
 plt.show()
 fig.savefig('traj-overlay.png', quality=100, transparent=True)
 
-
+#line.distance(point)
 #create your in and out projections with pyroj:
 
 
