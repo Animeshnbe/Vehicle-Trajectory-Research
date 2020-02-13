@@ -180,6 +180,13 @@ for i in trlist:
             modtrlist.append(trajectory)
         #else:
          #   modtrlist.append(i)
+ 
+#removing duplicates from matched trajectories
+#not necessary if timestamped
+b = list()
+for sublist in modtrlist:
+    if (sublist not in b) and len(sublist)>2:
+        b.append(sublist)
         
 ##############################MAPBOX API####################################
 from mapbox import MapMatcher
