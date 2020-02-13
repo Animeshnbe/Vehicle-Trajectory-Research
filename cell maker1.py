@@ -86,10 +86,52 @@ for i in range(len(trlist)):
         k+=1
 
 p=0
-#countdistinct=list()
 for i in range(len(modtrlist)):
     modtrlist[i]=mapmatch(floatify(modtrlist[i]))
     #trlist[i]=floatify(trlist[i])
     q=p+len(modtrlist[i])
     modtrlist[i]=[[j,traject[k][1]] for j,k in zip(modtrlist[i],range(p,q))]
     p=q
+    
+###############################METHOD 2######################################
+import re
+
+ct=0
+xt=[]
+with open('trajectories.csv', mode='r') as dtfile:
+    rd=csv.reader(dtfile,delimiter=',')
+    for row in rd:
+        if ct%2==0:
+            xt.append(row)
+        ct+=1
+
+xall=[]
+trlist=[]
+for i in range(len(xt)):
+    trajectory=[]
+    for j in range(len(xt[i])):
+        y=re.findall(r'\d+\.*\d*',xt[i][j])
+        trajectory.append([float(y[0]),float(y[1])])
+        xall.append([float(y[0]),float(y[1])])
+    trlist.append(np.array(trajectory,dtype=float))
+
+clusters = AgglomerativeClustering(n_clusters=None, affinity=diff_affinity, compute_full_tree='auto', connectivity=None, distance_threshold=100.0, linkage='complete')
+clusters.fit(xall) 
+y=clusters.labels_
+lab=Counter(y).keys()
+
+ctr=0
+s=0
+mt=[]
+for i in range(len(modtrlist)):
+    modtraj=[]
+    modtraj2=[]
+    s=s+len(modtrlist[i])
+    while ctr<s:
+        modtraj.append(y[ctr])
+        modtraj2.append([y[ctr],xall[ctr]])
+        #remove no change cell sequences
+        while ctr+1<s and y[ctr]==y[ctr+1]:
+            ctr+=1
+        ctr+=1
+    mt.append(modtraj)
