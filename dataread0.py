@@ -52,6 +52,14 @@ clusters = AgglomerativeClustering(n_clusters=None, affinity=diff_affinity, comp
 clusters.fit(trlist[:2]) 
 y=clusters.labels_
 
+########################CLUSTERING BY VARIANCE IN DATA########################
+def bir(a,k):
+    wav=(k*np.var(a[:k]) + (len(l)-k)*np.var(a[k:]))/len(l)
+    if np.var(a)-wav:
+        return k
+    else:
+        return (l,k+1)
+
 #######################READ GEOLIFE DATASET###################################
 from pathlib import Path
 import numpy as np
@@ -139,7 +147,15 @@ for i in trl:
         g.append([float(i[j][0]),float(i[j][1])])
     trlist.append(g)
     
-
+######################ELIMINATE SPIRALS OR U-TURNS##########################
+def roughrouting(trlist):
+    for i in trlist:
+        qs=i[0]
+        qd=i[-1]
+        for j in range(1,len(i)-1):
+            if (distfind(qs,i[j])>distfind(qs,i[j+1])) or (distfind(qd,i[j])<distfind(qd,i[j+1])):
+                del(i[j])
+                
 ###############################MAP MATCHING####################################
 ##############################BING MAPS API####################################
 modtrlist=[]
@@ -253,8 +269,8 @@ for row in rd:
         trajlist.append(xt)
     ct+=1
     
-#######################READ CELL SEQUENCES WITHOUT REPETITIONS###################
 ##########################BAD LOGIC AS WITHOUT TIMESTAMP#########################
+#######################READ CELL SEQUENCES WITHOUT REPETITIONS###################
 ctr=0
 s=0
 mt=[]
@@ -269,3 +285,9 @@ for i in range(len(x)):
         ctr+=1
     if len(modtraj)>1:
         mt.append(modtraj)
+        
+#########################REMOVE REPETITIONS IN SEQUENCES########################
+b = list()
+for sublist in modtrlist:
+    if (sublist not in b) and len(sublist)>2:
+        b.append(sublist)
