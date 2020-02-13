@@ -50,3 +50,17 @@ df3=gp.read_file("C:/Users/Animesh/Documents/vta research project/DATASETS/t-dri
 
 df1=df1.to_crs({'init': 'epsg:4326'})
 df2=df2.to_crs({'init': 'epsg:4326'})
+
+##############PLOT GRAPH FOR CELL SEQUENCES WITH FINITE SET OF CELLS##################
+import networkx as nx
+import matplotlib.pyplot as plt
+
+def draw(mt):
+    g=nx.MultiGraph()
+    for i in range(len(mt)):
+        for j in range(len(mt[i])-1):
+            g.add_edge(mt[i][j],mt[i][j+1], weight=distfind(b[i][j],b[i][j+1]))
+                
+    options = {'node_color': 'green', 'node_size': 25, 'width': 0.2}
+    nx.draw(g, with_labels=True, cmap=plt.cm.Reds_r, k=0.25, iterations=20, **options)
+    g.number_of_nodes()
