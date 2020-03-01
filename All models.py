@@ -96,15 +96,18 @@ for epoch in range(10):
 	# fit model for one epoch on this sequence
 	model.fit(x_train[k], y_train[k], epochs=1, batch_size=1, verbose=1)
 '''
-from keras.callbacks import EarlyStopping
+from keras.callbacks import EarlyStopping, ModelCheckpoint
 es = EarlyStopping(monitor='val_loss', mode='min', verbose=1, patience=50)
+filepath='best-weights-{epoch:02d}-{loss:.4f}.hdf5'
+mc = ModelCheckpoint(filepath, monitor='val_loss', save_best_only=True, mode='min', verbose=1)
+
+callbacks_list=[es,mc]
 model.fit(x_train,y_train, epochs=10, verbose=1, 
           validation_split=0.3, 
           batch_size=4, 
           shuffle=True,
-          callbacks=[es])
+          callbacks=callbacks_list)
 
-#mc = ModelCheckpoint('best_model.h5', monitor='val_loss', mode='min', verbose=1)
 k=67+random.randint(0, 28)
 y=model.predict_classes(np.reshape(x_train[k],(1,-1,1)))
 y=np.reshape(y,(-1,1))
@@ -310,3 +313,12 @@ feature_train, feature_test=features[:i],features[i:]
 label_train, label_test=labels[:i],labels[i:]
 #feature_train, feature_test, label_train, label_test = train_test_split(features,labels,test_size=0.25)
 model.fit_generator(train_generator(feature_train,label_train), steps_per_epoch=30, epochs=10, verbose=1)
+
+from Bio import pairwise2
+from Bio.pairwise2 import format_alignment
+
+alignments = pairwise2.align.localxx(y_train,label_train, 2, -1, -0.5, -0.1)
+
+# Use format_alignment method to format the alignments in the list
+for a in alignments:
+    print(format_alignment(*a))
