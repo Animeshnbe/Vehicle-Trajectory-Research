@@ -4,13 +4,14 @@ Created on Sun Oct 13 11:44:01 2019
 
 @author: Animesh
 """
-from dataread0 import timeint, mapmatch, floatify, diff_affinity
+from dataread0 import distfind, timeint, mapmatch, floatify, diff_affinity
+from sklearn.cluster import DBSCAN 
 import numpy as np
 import os
 import csv
 from sklearn.cluster import AgglomerativeClustering
 from collections import Counter
- 
+
 def lcs(X, Y): 
     # find the length of the strings 
     m = len(X) 
@@ -30,18 +31,18 @@ def lcs(X, Y):
   
     # L[m][n] contains the length of LCS of X[0..n-1] & Y[0..m-1] 
     return L[m][n] 
-    
+
+  
 def vclustering(coords):
     #clustering nodes by maximum decrease in variance
     #clusters = AgglomerativeClustering(n_clusters=None, affinity='precomputed', compute_full_tree='auto', connectivity=None, distance_threshold=100.0, linkage='average')
-    clusters = AgglomerativeClustering(n_clusters=None, affinity=diff_affinity, compute_full_tree='auto', connectivity=None, distance_threshold=100.0, linkage='average')
+    clusters = DBSCAN(eps=500, min_samples=100, metric=distfind)
+    #clusters = AgglomerativeClustering(n_clusters=n, affinity='euclidean', compute_full_tree='auto', connectivity=None, linkage='ward')
+    #clusters = AgglomerativeClustering(n_clusters=None, affinity=diff_affinity, compute_full_tree='auto', connectivity=None, distance_threshold=100.0, linkage='average')
     clusters.fit(coords) 
     labels=clusters.labels_
     clab=[[] for i in range(len(Counter(labels).keys()))]
     n=len(clab)
-    clusters = AgglomerativeClustering(n_clusters=n, affinity='euclidean', compute_full_tree='auto', connectivity=None, linkage='ward')
-    clusters.fit(coords) 
-    labels=clusters.labels_
     for i in range(n):
         clab[labels[i]].append(coords[i])
     centroid=[np.mean(np.array(clab[labels[i]]), axis=0) for i in range(len(Counter(labels).keys()))]
@@ -135,3 +136,41 @@ for i in range(len(modtrlist)):
             ctr+=1
         ctr+=1
     mt.append(modtraj)
+    
+###############################METHOD 3, incomplete######################################
+with open('/content/drive/My Drive/raw_traj_tdrive.csv','r') as gps:
+  trlist=[]
+  reader = csv.reader(gps, delimiter=',')
+  ctr=0
+  for row in reader:
+    if (ctr%2)==0:
+      trlist.append(row)    
+    ctr+=1 
+    
+seed_points_src=[xt[0] for xt in trlist]
+seed_points_dest=[xt[-1] for xt in trlist]
+
+def closest(cells,s,gamma):
+    min_dist=np.inf
+    flag=False
+    for c in cells:
+        if distfind(c[0],s)<gamma and distfind(c[0],s)<min_dist:
+            min_dist=distfind(c[0],s)
+            c.append(s)
+            c=[np.mean(c,axis=0)]
+            flag=True
+    if flag==False:
+        c=[s]
+        cells.append(c)
+    return cells
+            
+cells=[]
+for s in seed_points_src:
+    cells = closest(cells,s,1000)
+
+for c in cells:
+    c=[np.mean(c,axis=0)]
+    
+for x in range(xmin,xmax,1000):
+    for y in range(ymin,ymax,1000):
+        if (x,y,df2)
