@@ -26,6 +26,8 @@ with open('/content/drive/My Drive/raw_traj_tdrive.csv','r') as gps:
       trlist.append(row)    
     ctr+=1 
     
+def road_segs():
+    
 def check_diag(pt,src,dest):
     m=(dest[1]-src[1])/(dest[0]-src[0])
     md=-1/m
@@ -43,14 +45,17 @@ def cell_score(traj):
     while (acc[0]<dest[0] and acc[1]<dest[1]):
         cells.append([acc,tuple(np.add(acc,grid))])
         
+    for pts in range(len(traj)):
+        
     #calc inflows    
     for cell in cells:
-        ss=count_inflow(cell)
+        ss=count_inflow(cell,)
         
     cells=[(49,24),(23,13),(11,0),(40,17),(12,5),(34,14)]
     ss=[100,45,78,12,23,9]
-    cells=np.argsort(cells,axis=1)
-    
+    ci=np.argsort(ss)
+    sorted_cells=cells[ci[]]
+    cells=cells[]
     rank_match=0
     traj_score=0
     cell_score=[]
