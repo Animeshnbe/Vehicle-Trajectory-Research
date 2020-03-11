@@ -4,8 +4,25 @@ Created on Thu Feb 13 17:30:51 2020
 MODELS HERE!
 @author: Animesh
 """
-
+import csv
+import numpy as np
+import random
+mt=[]
+ct=0
+dataf=open("C:/Users/Animesh/Documents/vta research project/enc-sequences.csv", 'r')
+rd=csv.reader(dataf, delimiter=',', quoting=csv.QUOTE_NONE)
+for row in rd:
+    if ct%2==0:
+        xt=[]
+        i=0
+        while i<len(row) and row[i]!="":
+            xt.append(row[i])
+            i+=2
+        mt.append(xt)
+    ct+=1
+    
 from keras.layers import BatchNormalization, Add, Flatten, Activation
+from keras.layers import Bidirectional, RepeatVector
 from keras.models import Model, Sequential, Input
 from keras.layers.recurrent import GRU, LSTM
 from keras.layers.core import Dense, Masking
@@ -87,9 +104,6 @@ std=grid_result.cv_results_['std_test_score']
 params=grid_result.cv_results_['params']
 print(grid_result.best_score_, grid_result.best_params_)
 
-
-import random
-
 for epoch in range(10):
 	# generate new random sequence
 	k=random.randint(0, 96)
@@ -102,20 +116,22 @@ filepath='best-weights-{epoch:02d}-{loss:.4f}.hdf5'
 mc = ModelCheckpoint(filepath, monitor='val_loss', save_best_only=True, mode='min', verbose=1)
 
 callbacks_list=[es,mc]
-model.fit(x_train,y_train, epochs=10, verbose=1, 
+history = model.fit(x_train,y_train, epochs=10, verbose=1, 
           validation_split=0.3, 
           batch_size=4, 
           shuffle=True,
           callbacks=callbacks_list)
 
+model.save('RNN-mod.h5')
+model.save_weights('RNN-mod_Weights.h5')
+
+'''
 k=67+random.randint(0, 28)
 y=model.predict_classes(np.reshape(x_train[k],(1,-1,1)))
 y=np.reshape(y,(-1,1))
+
 from nltk.translate.bleu_score import sentence_bleu
 score = sentence_bleu(y_train[k], y[k])
-model.save('RNN-mod.h5')
-model.save_weights('RNN-mod_Weights.h5')
-'''
 mx=0
 for m in y_train:
     if m in y[k]:
@@ -150,16 +166,6 @@ def split_sequences(trlist, n_steps_in, n_steps_out):
 x_train, y_train=split_sequences(modtrlist, 3, 1)
 n_features = x_train.shape[2]
 
-import keras
-#from keras.layers import BatchNormalization, Add, Flatten, Activation
-from keras.models import Model, Sequential, Input
-from keras.layers.recurrent import GRU, LSTM
-from keras.layers.core import Dense, Masking
-#from sklearn.metrics import classification_report
-#from keras.optimizers import Nadam
-#from keras import regularizers
-from keras.layers import TimeDistributed, Embedding, Bidirectional, RepeatVector
-#from keras.utils import to_categorical
 # define model
 model = Sequential()
 model.add(LSTM(20, activation='relu', input_shape=(3, n_features)))
@@ -201,11 +207,28 @@ model=get_model()
 
 from keras.callbacks import EarlyStopping
 es = EarlyStopping(monitor='val_loss', mode='min', verbose=1, patience=50)
-model.fit(x_train,y_train, epochs=10, verbose=1, 
+history = model.fit(x_train,y_train, epochs=10, verbose=1, 
           validation_split=0.3, 
           batch_size=4, 
           shuffle=True,
           callbacks=[es])
+
+import matplotlib.pyplot as plt
+plt.plot(history.history['accuracy'])
+plt.plot(history.history['val_accuracy'])
+plt.title('Model Accuracy')
+plt.ylabel('accuracy')
+plt.xlabel('epoch')
+plt.legend(['train','test'], loc='upper left')
+plt.show()
+
+plt.plot(history.history['loss'])
+plt.plot(history.history['val_loss'])
+plt.title('Model Loss')
+plt.ylabel('loss')
+plt.xlabel('epoch')
+plt.legend(['train','test'], loc='upper left')
+plt.show()
 
 ##########################MODEL 3###############################################
 import numpy as np
@@ -222,15 +245,6 @@ with open('graphrep.csv', mode='r') as dtfile:
             mt.append(trajectory)
         ct+=1
     
-from keras.layers import BatchNormalization, Add, Flatten
-from keras.models import Model, Sequential, Input
-from keras.layers.recurrent import GRU
-from keras.layers.core import Dense, Masking
-from sklearn.metrics import classification_report
-from keras.optimizers import Nadam
-from keras import regularizers
-from keras.layers import TimeDistributed, Embedding
-from keras.utils import to_categorical
 
 x_train=[]
 y_train=[]
