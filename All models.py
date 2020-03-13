@@ -9,14 +9,14 @@ import numpy as np
 import random
 mt=[]
 ct=0
-dataf=open("C:/Users/Animesh/Documents/vta research project/enc-sequences.csv", 'r')
+dataf=open("C:/Users/IDALAB HCM - II/Downloads/Vehicle-Trajectory-Research-master/enc-sequences.csv", 'r')
 rd=csv.reader(dataf, delimiter=',', quoting=csv.QUOTE_NONE)
 for row in rd:
     if ct%2==0:
         xt=[]
         i=0
         while i<len(row) and row[i]!="":
-            xt.append(row[i])
+            xt.append(float(row[i]))
             i+=2
         mt.append(xt)
     ct+=1
@@ -46,9 +46,9 @@ x_train=np.reshape(np.array(x_train),(len(x_train),len(x_train[0]),1))
 y_train=np.reshape(np.array(y_train),(len(x_train),len(x_train[0]),1))
 #converted to 3d tensor of (batch_size,time_steps,feature_dim)
 
-'''
+
 for i in range(len(y_train)):
-    print(len(lab))
+    #print(len(lab))
     y_train[i]=to_categorical(y_train[i], num_classes=1503)
 
 #y_train=np.array(y_train, dtype='int32')
@@ -65,7 +65,8 @@ def data_gen(mt):
         #print (x_train.shape)
         yield x_train, y_train
         i=(i+1)%len(mt)
-'''
+
+
 def get_model():
     #density
     model=Sequential()
@@ -77,7 +78,7 @@ def get_model():
     #model.add(Dense(1503, activation='softmax'))
     #model.add(Flatten(batch_input_shape=(1,)))
     #model.add(Activation('softmax'))
-    print(model.summary())
+    #print(model.summary())
 
     model.compile(loss='sparse_categorical_crossentropy',
               optimizer='Adamax', metrics = ['accuracy'])
@@ -293,24 +294,7 @@ def get_model():
     return model
 
 model=get_model()
-'''
-#model.fit_generator(data_gen(mt), steps_per_epoch=len(mt), epochs=10, verbose=1)
-np.random.seed(7)
-from keras.wrappers.scikit_learn import KerasClassifier
-mmodel=KerasClassifier(build_fn=get_model)
-from sklearn.model_selection import GridSearchCV
-batch_size=[1, 4, 6, 8, 12]
-epochs=[10,20,30]
-#optimizer=['SGD','RMSprop','Adagrad','Adadelta','Adam','Adamax','Nadam'] #, optimizer=optimizer
-param_grid=dict(batch_size=batch_size, epochs=epochs)
-grid=GridSearchCV(estimator=mmodel,param_grid=param_grid, n_jobs=1, cv=3)
-grid_result=grid.fit(x_train,y_train)
 
-#grid_result.best_score_, best_params_
-means=grid_result.cv_results_['mean_test_score']
-std=grid_result.cv_results_['std_test_score']
-params=grid_result.cv_results_['params']
-'''
 model.fit(x_train,y_train, epochs=10, verbose=1, 
           validation_split=False, 
           batch_size=16, 
@@ -326,7 +310,7 @@ i=round(len(mt)*0.75)
 feature_train, feature_test=features[:i],features[i:]
 label_train, label_test=labels[:i],labels[i:]
 #feature_train, feature_test, label_train, label_test = train_test_split(features,labels,test_size=0.25)
-model.fit_generator(train_generator(feature_train,label_train), steps_per_epoch=30, epochs=10, verbose=1)
+#model.fit_generator(train_generator(feature_train,label_train), steps_per_epoch=30, epochs=10, verbose=1)
 
 from Bio import pairwise2
 from Bio.pairwise2 import format_alignment

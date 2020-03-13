@@ -9,9 +9,10 @@ import numpy as np
 import random
 mt=[]
 ct=0
-dataf=open("C:/Users/IDALAB HCM - II/Downloads/Vehicle-Trajectory-Research-master/enc-sequences.csv", 'r')
+
+dataf=open("C:/Users/IDALAB HCM - II/Downloads/Vehicle-Trajectory-Research-master/raw_traj_tdrive.csv", 'r')
 rd=csv.reader(dataf, delimiter=',', quoting=csv.QUOTE_NONE)
-for row in rd:
+for row in range(1000000):
     if ct%2==0:
         xt=[]
         i=0
@@ -20,7 +21,7 @@ for row in rd:
             i+=2
         mt.append(xt)
     ct+=1
-
+"""
 import numpy as np
 from keras.layers import BatchNormalization, Add
 from keras.layers import Bidirectional
@@ -76,7 +77,7 @@ def get_model():
     return model
 
 model=get_model()
-model.load_weights("C:/Users/IDALAB HCM - II/Downloads/Vehicle-Trajectory-Research-master/best-weights-10-1.1996.hdf5")
+#model.load_weights("C:/Users/IDALAB HCM - II/Downloads/Vehicle-Trajectory-Research-master/best-weights-10-1.1996.hdf5")
 
 def split_sequences(trlist, n_steps_in, n_steps_out):
     X, y = list(), list()
@@ -106,11 +107,10 @@ es = EarlyStopping(monitor='val_loss', mode='min', verbose=1, patience=50)
 #callbacks_list=[es,mc]
 history = model.fit(x_train,y_train, epochs=50, verbose=1, 
           validation_split=0.3, 
-          batch_size=4, 
+          batch_size=None, 
           shuffle=True)
 
 model.save('RNN-mod.h5')
-model.save_weights('RNN-mod_Weights.h5')
 
 import matplotlib.pyplot as plt
 plt.plot(history.history['accuracy'])
@@ -128,3 +128,4 @@ plt.ylabel('loss')
 plt.xlabel('epoch')
 plt.legend(['train','test'], loc='upper left')
 plt.show()
+"""
