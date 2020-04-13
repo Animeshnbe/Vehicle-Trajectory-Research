@@ -1,4 +1,6 @@
 import csv
+import numpy as np
+import os
 ####################EARTH DISTANCE FINDER#####################
 from math import radians, sin, cos, asin, sqrt
 def distfind(src,dest):
@@ -30,21 +32,85 @@ def timeint(start, end):
     timel=(edt-sdt).total_seconds()
     return timel
 
-###############READ TSMC DATASET WITH TIMESTAMP ORDERING IN CSV####################
-import os
+###############READ T-DRIVE DATASET WITH TIMESTAMP ORDERING IN CSV####################
+path = "C:/Users/Animesh/Documents/vta research project/DATASETS/t-drive Beijing/taxi_log_2008_by_id/"
+traject=[] #list of all points for extracting representatives
+trlist=[] #list of all trajectories by vehicle id
+
+for file in os.scandir(path):
+    with open(file,'r') as gps:
+        temp=[]
+        reader = csv.reader(gps, delimiter=',')
+        prev=''
+        for row in reader:
+            traject.append(row)
+            temp.append(tuple((float(row[2]),float(row[3]))))
+            if prev!='' and timeint(prev,row[1])>600.0:
+                trlist.append(temp)
+                temp=[]
+                prev=''
+            else:
+                prev=row[1]       
+        trlist.append(temp) 
+
+
+def slot (dt):
+    h=(int(dt.strftime("%H")))*6 + int(dt.strftime("%M"))//10
+    return int(dt.strftime("%d"))-2, h
+
+t_win=np.zeros(shape=(7,144))
+
+for t in traject:
+    t_win[slot(datetime.strptime(t[1], '%Y-%m-%d %H:%M:%S'))] += 1
+    
+import matplotlib.pyplot as plt; plt.rcdefaults()
+import numpy as np
+import matplotlib.pyplot as plt
+
+x = np.arange(0.,24.,(1/6))
+
+plt.bar(x, t_win[3,:],width=0.5, align='center', alpha=0.5)
+#plt.xticks(,)
+plt.ylabel('Traffic Count')
+plt.title('Distribution of traffic')
+plt.show()
+
+lengths=[]
+temp=0
+while temp<len(trlist):
+    if len(trlist[temp])<=1:
+        trlist.pop(temp)
+        
+    else:
+        lengths.append(len(trlist[temp]))
+        temp+=1
+        
+import numpy as np
+with open('raw_traj_tdrive.csv', mode='w') as dtfile:
+    wr=csv.writer(dtfile, delimiter=',')
+    for i in range(len(trlist)):
+        wr.writerow(trlist[i])
+            
+#######################READ TSMC DATASET (NYC AND TOKYO)######################    
 path="C:/Users/mayank/Downloads/ANIMESH/datasets/dataset_tsmc2014/"
 trlist=[]
+userlist=[]
 for file in os.scandir(path):
     with open(file, 'r') as c_file:
         cread=csv.reader(c_file,delimiter='\t')
         lines=0
         for row in cread:
+            userlist.append(float(row[0]))
             stx=row[7]
             st=stx.replace('+0000 ','')
             dt=datetime.strptime(st,'%a %b %d %H:%M:%S %Y')
             #coord=row[4].split('\t')
             #print(coord)
             trlist.append([float(row[4]),float(row[5]),dt])
+            
+from collections import Counter
+lab=Counter(userlist).keys()
+print(len(lab))
 
 ########################AGGLOMERATIVE CLUSTERING FOR ALL POINTS###############
 from sklearn.cluster import AgglomerativeClustering
@@ -62,16 +128,37 @@ def bir(a,k):
 
 #######################READ GEOLIFE DATASET###################################
 from pathlib import Path
-import numpy as np
 
-path3="C:/Users/Animesh/Documents/vta research project/DATASETS/Geolife Trajectories 1.3/Data/"
+path3="C:/Users/Animesh/Documents/vta research project/DATASETS/Geolife Trajectories 1.3/Data - Copy/"
 entry=Path(path3)
-ctr=0
+
+for direc in entry.iterdir():
+    iterator=os.scandir(path3+direc.name+"/Trajectory/")
+    labelfile=open(path3+direc.name+"/labels.txt", mode='r')
+    rd=csv.reader(labelfile,delimiter='\t')
+    ct=0
+    next(rd)
+    for row in rd:
+        if row[2] in ['taxi','bus','car','motorcycle']:
+            start=datetime.strptime(row[0], '%Y-%m-%d %H:%M:%S')
+            end=datetime.strptime(row[1], '%Y-%m-%d %H:%M:%S')
+            dtfile = open(iterator, mode='r')
+            rowread=csv.reader(dtfile,delimiter=',')
+            for i in range(7):
+                next(rowread)
+            while rowread[]>start and rowread[]>end:
+            if (lat>=39.69 and lat <=40.18) and (lon>=116.10 and lon <=116.71):
+    break
+        
+ctr=1
+flag=0
 trajectories=[]
 coords=[]
 for direc in entry.iterdir():
-    #print(path3+direc.name)
+    print(path3+direc.name)
     for x in os.scandir(path3+direc.name+"/Trajectory/"):
+        print (ctr,x)
+        ctr+=1
         trlist=[]
         with open(x, mode='r') as dtfile:
             rd=csv.reader(dtfile,delimiter=',')
@@ -80,10 +167,18 @@ for direc in entry.iterdir():
                 ct+=1
                 if ct<7:
                     continue
+                if row[5]=='2007-03-31':
+                    print (row[6])
+                    flag=1
+                else:
+                    break
                 trlist.append([row[0],row[1],row[4]])
                 coords.append([float(row[0]),float(row[1])])
+        if flag==1:
+            break
         if len(trlist)>3:
             trajectories.append(trlist)
+    break
 #Range of the dataset
 bounds=[[min(coords[:,0]),min(coords[:,1])],[max(coords[:,0]),max(coords[:,1])]]
 
@@ -112,27 +207,6 @@ plt.xticks(np.arange(0, 24, 2))
 plt.ylabel('Distribution')
 plt.title('Cars by time of day')
 plt.show()
-
-#######################READ TSMC DATASET (NYC AND TOKYO)######################    
-path="C:/Users/mayank/Downloads/ANIMESH/datasets/dataset_tsmc2014/"
-trlist=[]
-userlist=[]
-for file in os.scandir(path):
-    with open(file, 'r') as c_file:
-        cread=csv.reader(c_file,delimiter='\t')
-        lines=0
-        for row in cread:
-            userlist.append(float(row[0]))
-            stx=row[7]
-            st=stx.replace('+0000 ','')
-            dt=datetime.strptime(st,'%a %b %d %H:%M:%S %Y')
-            #coord=row[4].split('\t')
-            #print(coord)
-            trlist.append([float(row[4]),float(row[5]),dt])
-            
-from collections import Counter
-lab=Counter(userlist).keys()
-print(len(lab))
 
 ############################GO TRACKS BRAZIL DATASET##############################
 path2="C:/Users/mayank/Downloads/ANIMESH/datasets/GPS Trajectory/"

@@ -24,10 +24,8 @@ def lcs(X, Y):
         for j in range(n + 1): 
             if i == 0 or j == 0 : 
                 L[i][j] = 0
-            elif X[i-1] == Y[j-1]: 
-                L[i][j] = L[i-1][j-1]+1
             else: 
-                L[i][j] = max(L[i-1][j], L[i][j-1]) 
+                L[i][j] = max(L[i-1][j-1]+simi(X[i],Y[j]),L[i-1][j], L[i][j-1]) 
   
     # L[m][n] contains the length of LCS of X[0..n-1] & Y[0..m-1] 
     return L[m][n] 
@@ -36,7 +34,7 @@ def lcs(X, Y):
 def vclustering(coords):
     #clustering nodes by maximum decrease in variance
     #clusters = AgglomerativeClustering(n_clusters=None, affinity='precomputed', compute_full_tree='auto', connectivity=None, distance_threshold=100.0, linkage='average')
-    clusters = DBSCAN(eps=500, min_samples=100, metric=distfind)
+    clusters = DBSCAN(eps=500, min_samples=4, metric=distfind)
     #clusters = AgglomerativeClustering(n_clusters=n, affinity='euclidean', compute_full_tree='auto', connectivity=None, linkage='ward')
     #clusters = AgglomerativeClustering(n_clusters=None, affinity=diff_affinity, compute_full_tree='auto', connectivity=None, distance_threshold=100.0, linkage='average')
     clusters.fit(coords) 
@@ -72,9 +70,13 @@ for file in os.scandir(path):
                 prev=row[1]       
     trlist.append(temp)
 
-coordinates=[]
+from datetime import datetime
+coordinates=[[] for i in range(1008)]
 for i in traject:
-    coordinates.append(i[2:])
+    tm = datetime.strptime(i[1], '%Y-%m-%d %H:%M:%S')
+    index=(tm-datetime.strptime('2008-02-02 00:00:00', '%Y-%m-%d %H:%M:%S')).total_seconds()
+    index=index//600
+    coordinates[index].append(i[2:])
     
 coord=floatify(coordinates)
 coord,cent=vclustering(coord) #all coordinates representative 
@@ -138,7 +140,7 @@ for i in range(len(modtrlist)):
     mt.append(modtraj)
     
 ###############################METHOD 3, incomplete######################################
-with open('/content/drive/My Drive/raw_traj_tdrive.csv','r') as gps:
+with open('C:/Users/Animesh/Documents/vta research project/raw_traj_tdrive.csv','r') as gps:
   trlist=[]
   reader = csv.reader(gps, delimiter=',')
   ctr=0
@@ -153,24 +155,37 @@ seed_points_dest=[xt[-1] for xt in trlist]
 def closest(cells,s,gamma):
     min_dist=np.inf
     flag=False
-    for c in cells:
-        if distfind(c[0],s)<gamma and distfind(c[0],s)<min_dist:
-            min_dist=distfind(c[0],s)
-            c.append(s)
-            c=[np.mean(c,axis=0)]
-            flag=True
+    for c in range(len(cells)):
+        if distfind(cells[c][0],s)<gamma and distfind(cells[c][0],s)<min_dist:
+            min_dist=distfind(cells[c][0],s)
+            minc=c
+            flag=True      
     if flag==False:
-        c=[s]
-        cells.append(c)
+        cells.append([s,1])
+    else:
+        cells[c][0]=[(cells[c][0][0]*cells[c][1]+s[0])/(1+cells[c][1]),(cells[c][0][1]*cells[c][1]+s[1])/(1+cells[c][1])]
+        cells[c][1]+=1
     return cells
-            
+         
 cells=[]
 for s in seed_points_src:
+    print (s)
+    break
     cells = closest(cells,s,1000)
 
 for c in cells:
     c=[np.mean(c,axis=0)]
     
+with open('C:/Users/Animesh/Documents/vta research project/raw_cells.csv','r') as gps:
+    reader = csv.reader(gps, delimiter=' ')
+    centers=[]
+    for row in reader:
+        centers.append(row[0])
+   
+cent=[]
+for c in centers:
+    temp=c.split(', ')
+    cent.append([float(temp[0][2:]),float(temp[1][:-1])])
 for x in range(xmin,xmax,1000):
     for y in range(ymin,ymax,1000):
         if (x,y,df2)
